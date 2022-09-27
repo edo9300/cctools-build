@@ -76,10 +76,10 @@ jobs:
           cd /opt
           tar xf /tmp/sdk.tgz
           cd cctools/bin
-          printf '#!/bin/bash\nCOMPILER_PATH=/opt/cctools/bin /opt/cctools/bin/clang -target x86_64-apple-darwin11 -isysroot /opt/cctools/sdk/MacOSX11.3.sdk -arch x86_64 -mmacosx-version-min=10.9 -mlinker-version=609 -Wno-unused-command-line-argument \"$@\"' > x86_64-macosx-clang
-          printf '#!/bin/bash\nCOMPILER_PATH=/opt/cctools/bin /opt/cctools/bin/clang++ -target x86_64-apple-darwin11 -isysroot /opt/cctools/sdk/MacOSX11.3.sdk -arch x86_64 -mmacosx-version-min=10.9 -mlinker-version=609 -Wno-unused-command-line-argument \"$@\"' > x86_64-macosx-clang++
-          printf '#!/bin/bash\nCOMPILER_PATH=/opt/cctools/bin /opt/cctools/bin/clang -target arm-apple-darwin11 -isysroot /opt/cctools/sdk/MacOSX11.3.sdk -arch arm64 -mmacosx-version-min=10.9 -mlinker-version=609 -Wno-unused-command-line-argument \"$@\"' > arm64-macosx-clang
-          printf '#!/bin/bash\nCOMPILER_PATH=/opt/cctools/bin /opt/cctools/bin/clang++ -target arm-apple-darwin11 -isysroot /opt/cctools/sdk/MacOSX11.3.sdk -arch arm64 -mmacosx-version-min=10.9 -mlinker-version=609 -Wno-unused-command-line-argument \"$@\"' > arm64-macosx-clang++
+          printf '#!/bin/bash\nCOMPILER_PATH=/opt/cctools/bin /opt/cctools/bin/clang -target x86_64-apple-darwin11 -isysroot /opt/cctools/sdk/MacOSX12.1.sdk -arch x86_64 -mmacosx-version-min=10.9 -mlinker-version=609 -Wno-unused-command-line-argument \"$@\"' > x86_64-macosx-clang
+          printf '#!/bin/bash\nCOMPILER_PATH=/opt/cctools/bin /opt/cctools/bin/clang++ -target x86_64-apple-darwin11 -isysroot /opt/cctools/sdk/MacOSX12.1.sdk -arch x86_64 -mmacosx-version-min=10.9 -mlinker-version=609 -Wno-unused-command-line-argument \"$@\"' > x86_64-macosx-clang++
+          printf '#!/bin/bash\nCOMPILER_PATH=/opt/cctools/bin /opt/cctools/bin/clang -target arm-apple-darwin11 -isysroot /opt/cctools/sdk/MacOSX12.1.sdk -arch arm64 -mmacosx-version-min=10.9 -mlinker-version=609 -Wno-unused-command-line-argument \"$@\"' > arm64-macosx-clang
+          printf '#!/bin/bash\nCOMPILER_PATH=/opt/cctools/bin /opt/cctools/bin/clang++ -target arm-apple-darwin11 -isysroot /opt/cctools/sdk/MacOSX12.1.sdk -arch arm64 -mmacosx-version-min=10.9 -mlinker-version=609 -Wno-unused-command-line-argument \"$@\"' > arm64-macosx-clang++
           chmod 755 arm*-clang*
           chmod 755 x86_64*-clang*
       - name: Archive
