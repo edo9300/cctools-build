@@ -1,0 +1,99 @@
+name: cctools
+on:
+  push:
+    branches:
+      - master  
+
+jobs:
+  build:
+
+    strategy:
+      fail-fast: true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: dsaltares/fetch-gh-release-asset@master
+        with:
+            repo: 'edo9300/cctools-build'
+            version: 'tags/sdk'
+            file: '/tmp/sdk.tgz'
+            token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build xar
+        run: |
+          sudo apt install -y libbz2-dev libxml2-dev libacl1-dev liblzma-dev zlib1g-dev libssl-dev libxml2-dev ninja-build
+          wget https://github.com/tpoechtrager/xar/archive/refs/heads/master.zip -O xar.zip
+          unzip xar.zip
+          cd xar-master/xar
+          ./configure --prefix=/opt/cctools
+          make -j2
+          make install
+      - name: Build apple llvm
+        run: |
+          wget https://github.com/apple/llvm-project/archive/refs/heads/apple/stable/20210107.zip -O 20210107.zip
+          unzip 20210107.zip
+          cd llvm-project-apple-stable-20210107
+          sed -i 's/\&\& getTriple().isX86()/\&\& OSTarget->getAsString(Args, Opts).find("simulator") != std::string::npos/g' clang/lib/Driver/ToolChains/Darwin.cpp
+          mkdir build
+          cd build
+          cmake ../llvm -G Ninja -DLLVM_ENABLE_PROJECTS=clang -DCMAKE_INSTALL_PREFIX=/opt/cctools \
+          -DCMAKE_BUILD_TYPE=MinSizeRel -DCMAKE_C_FLAGS="-I/opt/cctools/include -L/opt/cctools/lib" \
+          -DCMAKE_CXX_FLAGS="-I/opt/cctools/include -L/opt/cctools/lib"
+          ninja
+          ninja install
+      - name: Build libtapi
+        run: |
+          wget https://github.com/tpoechtrager/apple-libtapi/archive/refs/heads/master.zip -O libtapi.zip
+          unzip libtapi.zip
+          cd apple-libtapi-master
+          INSTALLPREFIX=/opt/cctools ./build.sh
+          ./install.sh
+      - name: Build cctools
+        run: |
+          wget https://github.com/tpoechtrager/cctools-port/archive/refs/heads/master.zip -O cctools.zip
+          unzip cctools.zip
+          cd cctools-port-master/cctools
+          ./configure --prefix=/opt/cctools --with-libtapi=/opt/cctools \
+          --with-libxar=/opt/cctools --with-llvm-config=/opt/cctools/bin/llvm-config \
+          --target=x86_64-apple-darwin11
+          make -j2
+          make install
+          cd ../..
+          rm -rf cctools-port-master
+          unzip cctools.zip
+          cd cctools-port-master/cctools
+          ./configure --prefix=/opt/cctools --with-libtapi=/opt/cctools \
+          --with-libxar=/opt/cctools --with-llvm-config=/opt/cctools/bin/llvm-config \
+          --target=arm-apple-darwin11
+          make -j2
+          make install
+          # SDK was prepared with this:
+          #mkdir /opt/cctools/sdk
+          #mkdir -p /opt/cctools/sdk
+          #cp -a /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk /opt/cctools/sdk
+          #cp -a /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/13.0.0/lib/darwin /opt/cctools
+          #cd /opt/cctools/sdk
+          #mv MacOSX.sdk MacOSX12.1.sdk
+          #ln -s MacOSX12.1.sdk MacOSX.sdk
+          cd /opt/cctools
+          tar xf /tmp/sdk.tgz
+          cd bin
+          printf '#!/bin/bash\nCOMPILER_PATH=/opt/cctools/bin /opt/cctools/bin/clang -target x86_64-apple-darwin11 -isysroot /opt/cctools/sdk/MacOSX11.3.sdk -arch x86_64 -mmacosx-version-min=10.9 -mlinker-version=609 -Wno-unused-command-line-argument \"$@\"' > x86_64-macosx-clang
+          printf '#!/bin/bash\nCOMPILER_PATH=/opt/cctools/bin /opt/cctools/bin/clang++ -target x86_64-apple-darwin11 -isysroot /opt/cctools/sdk/MacOSX11.3.sdk -arch x86_64 -mmacosx-version-min=10.9 -mlinker-version=609 -Wno-unused-command-line-argument \"$@\"' > x86_64-macosx-clang++
+          printf '#!/bin/bash\nCOMPILER_PATH=/opt/cctools/bin /opt/cctools/bin/clang -target arm-apple-darwin11 -isysroot /opt/cctools/sdk/MacOSX11.3.sdk -arch arm64 -mmacosx-version-min=10.9 -mlinker-version=609 -Wno-unused-command-line-argument \"$@\"' > arm64-macosx-clang
+          printf '#!/bin/bash\nCOMPILER_PATH=/opt/cctools/bin /opt/cctools/bin/clang++ -target arm-apple-darwin11 -isysroot /opt/cctools/sdk/MacOSX11.3.sdk -arch arm64 -mmacosx-version-min=10.9 -mlinker-version=609 -Wno-unused-command-line-argument \"$@\"' > arm64-macosx-clang++
+          chmod 755 arm*-clang*
+          chmod 755 x86_64*-clang*
+      - name: Archive
+        run: |
+          var=$(pwd)
+          cd /opt
+          tar -cJvf $var/cctools.tar.xz cctools
+      - name: Upload cctools deps
+        uses: ncipollo/release-action@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          artifacts: "cctools.tar.xz"
+          tag: "preview"
+          omitBodyDuringUpdate: true
+          omitNameDuringUpdate: true
+          allowUpdates: true
+          prerelease: true
