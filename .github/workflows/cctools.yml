@@ -11,11 +11,10 @@ jobs:
       fail-fast: true
     runs-on: ubuntu-latest
     steps:
-      - uses: dsaltares/fetch-gh-release-asset@master
+      - uses: robinraju/release-downloader@v1.5
         with:
-            repo: 'edo9300/cctools-build'
-            version: 'tags/sdk'
-            file: '/tmp/sdk.tgz'
+            tag: 'sdk'
+            file: 'sdk.tgz'
             token: ${{ secrets.GITHUB_TOKEN }}
       - name: Build xar
         run: |
@@ -48,6 +47,7 @@ jobs:
           ./install.sh
       - name: Build cctools
         run: |
+          mv sdk.tgz /tmp/
           wget https://github.com/tpoechtrager/cctools-port/archive/refs/heads/master.zip -O cctools.zip
           unzip cctools.zip
           cd cctools-port-master/cctools
