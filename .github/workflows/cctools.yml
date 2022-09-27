@@ -73,9 +73,9 @@ jobs:
           #cd /opt/cctools/sdk
           #mv MacOSX.sdk MacOSX12.1.sdk
           #ln -s MacOSX12.1.sdk MacOSX.sdk
-          cd /opt/cctools
+          cd /opt
           tar xf /tmp/sdk.tgz
-          cd bin
+          cd cctools/bin
           printf '#!/bin/bash\nCOMPILER_PATH=/opt/cctools/bin /opt/cctools/bin/clang -target x86_64-apple-darwin11 -isysroot /opt/cctools/sdk/MacOSX11.3.sdk -arch x86_64 -mmacosx-version-min=10.9 -mlinker-version=609 -Wno-unused-command-line-argument \"$@\"' > x86_64-macosx-clang
           printf '#!/bin/bash\nCOMPILER_PATH=/opt/cctools/bin /opt/cctools/bin/clang++ -target x86_64-apple-darwin11 -isysroot /opt/cctools/sdk/MacOSX11.3.sdk -arch x86_64 -mmacosx-version-min=10.9 -mlinker-version=609 -Wno-unused-command-line-argument \"$@\"' > x86_64-macosx-clang++
           printf '#!/bin/bash\nCOMPILER_PATH=/opt/cctools/bin /opt/cctools/bin/clang -target arm-apple-darwin11 -isysroot /opt/cctools/sdk/MacOSX11.3.sdk -arch arm64 -mmacosx-version-min=10.9 -mlinker-version=609 -Wno-unused-command-line-argument \"$@\"' > arm64-macosx-clang
